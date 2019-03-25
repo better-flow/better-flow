@@ -22,6 +22,9 @@
 #include <dvs_msgs/Event.h>
 #include <dvs_msgs/EventArray.h>
 
+#include <prophesee_event_msgs/PropheseeEvent.h>
+#include <prophesee_event_msgs/PropheseeEventBuffer.h>
+
 #include <better_flow/common.h>
 #include <better_flow/event.h>
 #include <better_flow/dvs_flow.h>
@@ -36,7 +39,8 @@
 
 // Node launch parameters (set in main)
 float refresh_rate;
-std::string input_event_topic;
+std::string input_event_topic_dvs;
+std::string input_event_topic_prophesee;
 std::string input_image_topic;
 std::string output_image_topic;
 std::string output_pointcloud_topic;
@@ -53,7 +57,7 @@ protected:
     image_transport::ImageTransport it_;
 
     // Publishers/Subscribers
-    ros::Subscriber event_sub;
+    ros::Subscriber event_sub_dvs, event_sub_prophesee;
     image_transport::Subscriber image_sub;
     ros::Publisher cloud_pub;
     image_transport::Publisher image_pub;
@@ -90,7 +94,9 @@ public:
         on_ev_change(on_ev_change_), on_time_change(on_time_change_),
         time_diff(0), event_diff(0), last_slice_time(0), current_slice_time(0),
         estimator(NULL) {
-        this->event_sub = this->n_.subscribe(input_event_topic, 0, &EventVisualizer::event_cb, this);
+        this->event_sub_dvs = this->n_.subscribe(input_event_topic_dvs, 0, &EventVisualizer::event_cb_dvs, this);
+        this->event_sub_prophesee = this->n_.subscribe(input_event_topic_prophesee, 0,
+                                                       &EventVisualizer::event_cb_prophesee, this);
         this->image_sub = this->it_.subscribe(input_image_topic, 1, &EventVisualizer::image_cb, this);
         this->cloud_pub = n_.advertise<pcl::PointCloud<pcl::PointXYZRGB> > (output_pointcloud_topic, 1);
         this->image_pub = this->it_.advertise(output_image_topic, 1);
@@ -113,7 +119,7 @@ public:
     }
 
     // Callbacks
-    void event_cb(const dvs_msgs::EventArray::ConstPtr& msg) {
+    void event_cb_dvs(const dvs_msgs::EventArray::ConstPtr& msg) {
         if (!this->first_event_received && msg->events.size() != 0) {
             this->first_event_received = true;
             this->reset_lag_timers(msg->events[0].ts.toNSec());
@@ -121,6 +127,20 @@ public:
 
         for (uint i = 0; i < msg->events.size(); ++i) {
             ull time = msg->events[i].ts.toNSec();
+            Event e(msg->events[i].x, msg->events[i].y, time);
+            this->add_event(e);
+            this->event_cnt++;
+        }
+    }
+
+    void event_cb_prophesee(const prophesee_event_msgs::PropheseeEventBuffer::ConstPtr& msg) {
+        if (!this->first_event_received && msg->events.size() != 0) {
+            this->first_event_received = true;
+            this->reset_lag_timers(msg->events[0].t * 1000);
+        }
+
+        for (uint i = 0; i < msg->events.size(); ++i) {
+            ull time = msg->events[i].t * 1000;
             Event e(msg->events[i].x, msg->events[i].y, time);
             this->add_event(e);
             this->event_cnt++;
@@ -233,8 +253,8 @@ void EventVisualizer<MAX_SZ, SPAN>::visualize () {
         pcl::PointXYZRGB p;
         p.rgba = color;
 
-        p.x = (float)(240 - e.fr_x) / 200.0;
-        p.y = (float)e.fr_y / 200.0;
+        p.x = (float)(RES_Y - e.fr_x) / (RES_X / 180 * 200);
+        p.y = (float)e.fr_y / (RES_X / 180 * 200);
         p.z = double(e.timestamp - t0) / 1000000000.0;
         cloud->push_back(p);
     }
@@ -272,7 +292,9 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     
     // topic names
-    if (!nh.getParam("better_flow/input_event_topic", input_event_topic)) input_event_topic = "/dvs/events";
+    if (!nh.getParam("better_flow/input_event_topic_dvs", input_event_topic_dvs)) input_event_topic_dvs = "/dvs/events";
+    if (!nh.getParam("better_flow/input_event_topic_prophesee", input_event_topic_prophesee))
+        input_event_topic_prophesee = "/prophesee/camera/cd_events_buffer";
     if (!nh.getParam("better_flow/input_image_topic", input_image_topic)) input_image_topic = "/dvs/image_raw";
 
     if (!nh.getParam("better_flow/output_image_topic", output_image_topic)) output_image_topic = "/bf/image";
@@ -284,8 +306,6 @@ int main(int argc, char** argv) {
 
     // Refresh parameters
     if (!nh.getParam("better_flow/refresh_rate", refresh_rate)) refresh_rate = 15;
-
-    // Refresh parameters
     if (!nh.getParam("better_flow/process_data", process_data)) process_data = false;
 
     // Read from text file

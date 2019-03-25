@@ -36,8 +36,8 @@ typedef unsigned long long int ull;
 #define FROM_MS(in) ull(1000000 * (in))
 
 // Camera resolution
-#define RES_X 180
-#define RES_Y 240
+#define RES_X 480
+#define RES_Y 640
 
 
 // Whether to print debug messages

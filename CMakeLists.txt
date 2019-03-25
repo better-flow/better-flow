@@ -28,12 +28,13 @@ find_package(catkin REQUIRED COMPONENTS
                 tf_conversions
 				laser_geometry
 				std_msgs
-                dvs_msgs)
+                dvs_msgs
+                prophesee_event_msgs)
 
 find_package(OpenCV REQUIRED)
 
 
-catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs std_msgs geometry_msgs dvs_msgs)
+catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs std_msgs geometry_msgs dvs_msgs prophesee_event_msgs)
 
 ###########
 ## Build ##

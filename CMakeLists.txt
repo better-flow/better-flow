@@ -9,21 +9,21 @@ add_definitions(-std=c++14)
 
 
 add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/better_flow_core/ext 
+    ${CMAKE_CURRENT_SOURCE_DIR}/better_flow_core/ext
     ${CMAKE_CURRENT_SOURCE_DIR}/better_flow_core/ext_build
 )
 
 
-find_package(catkin REQUIRED COMPONENTS 
-				cv_bridge 
-				geometry_msgs 
-				image_transport 
-				message_generation 
-				pcl_conversions 
-				pcl_ros 
-				roscpp 
+find_package(catkin REQUIRED COMPONENTS
+				cv_bridge
+				geometry_msgs
+				image_transport
+				message_generation
+				pcl_conversions
+				pcl_ros
+				roscpp
 				sensor_msgs
-				visualization_msgs 
+				visualization_msgs
 				tf
                 tf_conversions
 				laser_geometry
@@ -34,7 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 
 
-catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs std_msgs geometry_msgs dvs_msgs prophesee_event_msgs)
+catkin_package(CATKIN_DEPENDS message_runtime sensor_msgs std_msgs geometry_msgs dvs_msgs prophesee_event_msgs samsung_ros_driver)
 
 ###########
 ## Build ##

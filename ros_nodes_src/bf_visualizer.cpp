@@ -25,12 +25,15 @@
 #include <prophesee_event_msgs/PropheseeEvent.h>
 #include <prophesee_event_msgs/PropheseeEventBuffer.h>
 
+#include <samsung_ros_driver/SamsungEvent.h>
+#include <samsung_ros_driver/SamsungEventBuffer.h>
+
 #include <better_flow/common.h>
 #include <better_flow/event.h>
 #include <better_flow/dvs_flow.h>
 
 
-#define EVENT_WIDTH 1000000
+#define EVENT_WIDTH 5000000
 #define TIME_WIDTH 0.5
 
 #define EVENT_WIDTH_PROCESS 30000
@@ -41,6 +44,7 @@
 float refresh_rate;
 std::string input_event_topic_dvs;
 std::string input_event_topic_prophesee;
+std::string input_event_topic_samsung;
 std::string input_image_topic;
 std::string output_image_topic;
 std::string output_pointcloud_topic;
@@ -57,11 +61,11 @@ protected:
     image_transport::ImageTransport it_;
 
     // Publishers/Subscribers
-    ros::Subscriber event_sub_dvs, event_sub_prophesee;
+    ros::Subscriber event_sub_dvs, event_sub_prophesee, event_sub_samsung;
     image_transport::Subscriber image_sub;
     ros::Publisher cloud_pub;
     image_transport::Publisher image_pub;
-    image_transport::Publisher suppl_image_pub_0, 
+    image_transport::Publisher suppl_image_pub_0,
                                suppl_image_pub_1, suppl_image_pub_2;
 
     // Buffer for incoming events (aka 'slice')
@@ -88,8 +92,8 @@ protected:
     DVS_flow<EVENT_WIDTH_PROCESS, FROM_SEC(TIME_WIDTH_PROCESS)> *estimator;
 
 public:
-    EventVisualizer (ros::NodeHandle n, ull on_ev_change_, ull on_time_change_) : 
-        n_(n), it_(n), event_cnt(0), start_system_time(ros::Time::now()), 
+    EventVisualizer (ros::NodeHandle n, ull on_ev_change_, ull on_time_change_) :
+        n_(n), it_(n), event_cnt(0), start_system_time(ros::Time::now()),
         first_event_timestamp(0), first_event_received(false),
         on_ev_change(on_ev_change_), on_time_change(on_time_change_),
         time_diff(0), event_diff(0), last_slice_time(0), current_slice_time(0),
@@ -97,6 +101,8 @@ public:
         this->event_sub_dvs = this->n_.subscribe(input_event_topic_dvs, 0, &EventVisualizer::event_cb_dvs, this);
         this->event_sub_prophesee = this->n_.subscribe(input_event_topic_prophesee, 0,
                                                        &EventVisualizer::event_cb_prophesee, this);
+        this->event_sub_samsung   = this->n_.subscribe(input_event_topic_samsung, 0,
+                                                       &EventVisualizer::event_cb_samsung, this);
         this->image_sub = this->it_.subscribe(input_image_topic, 1, &EventVisualizer::image_cb, this);
         this->cloud_pub = n_.advertise<pcl::PointCloud<pcl::PointXYZRGB> > (output_pointcloud_topic, 1);
         this->image_pub = this->it_.advertise(output_image_topic, 1);
@@ -134,6 +140,20 @@ public:
     }
 
     void event_cb_prophesee(const prophesee_event_msgs::PropheseeEventBuffer::ConstPtr& msg) {
+        if (!this->first_event_received && msg->events.size() != 0) {
+            this->first_event_received = true;
+            this->reset_lag_timers(msg->events[0].t * 1000);
+        }
+
+        for (uint i = 0; i < msg->events.size(); ++i) {
+            ull time = msg->events[i].t * 1000;
+            Event e(msg->events[i].x, msg->events[i].y, time);
+            this->add_event(e);
+            this->event_cnt++;
+        }
+    }
+
+    void event_cb_samsung(const samsung_ros_driver::SamsungEventBuffer::ConstPtr& msg) {
         if (!this->first_event_received && msg->events.size() != 0) {
             this->first_event_received = true;
             this->reset_lag_timers(msg->events[0].t * 1000);
@@ -246,7 +266,7 @@ void EventVisualizer<MAX_SZ, SPAN>::visualize () {
     ull i = 0;
     for (auto &e : this->ev_buffer) {
         ++i;
-        
+
         if ((rate > 1) && (i % rate != 0))
             continue;
 
@@ -272,29 +292,30 @@ void EventVisualizer<MAX_SZ, SPAN>::visualize_minimizer () {
     cv::transpose(EventFile::projection_img(&this->estimator->ev_buffer, 1), image0);
     sensor_msgs::ImagePtr msg0 = cv_bridge::CvImage(std_msgs::Header(), "mono8", image0).toImageMsg();
     this->suppl_image_pub_0.publish(msg0);
-    
+
     cv::Mat image1;
     cv::transpose(EventFile::color_flow_img(&this->estimator->ev_buffer), image1);
     sensor_msgs::ImagePtr msg1 = cv_bridge::CvImage(std_msgs::Header(), "rgb8", image1).toImageMsg();
-    
+
     cv::Mat image2;
     cv::transpose(EventFile::projection_img_unopt(&this->estimator->ev_buffer, 1), image2);
     sensor_msgs::ImagePtr msg2 = cv_bridge::CvImage(std_msgs::Header(), "mono8", image2).toImageMsg();
 
     this->suppl_image_pub_1.publish(msg1);
     this->suppl_image_pub_2.publish(msg2);
-    
 }
 
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "better_event_visualizer");
     ros::NodeHandle nh;
-    
+
     // topic names
     if (!nh.getParam("better_flow/input_event_topic_dvs", input_event_topic_dvs)) input_event_topic_dvs = "/dvs/events";
     if (!nh.getParam("better_flow/input_event_topic_prophesee", input_event_topic_prophesee))
         input_event_topic_prophesee = "/prophesee/camera/cd_events_buffer";
+    if (!nh.getParam("better_flow/input_event_topic_samsung", input_event_topic_samsung))
+        input_event_topic_samsung = "/samsung/camera/events";
     if (!nh.getParam("better_flow/input_image_topic", input_image_topic)) input_image_topic = "/dvs/image_raw";
 
     if (!nh.getParam("better_flow/output_image_topic", output_image_topic)) output_image_topic = "/bf/image";
@@ -310,7 +331,7 @@ int main(int argc, char** argv) {
 
     // Read from text file
     if (!nh.getParam("better_flow/input_file", input_file)) input_file = "";
-   
+
     // Compute refresh parameters
     float time_refresh = 1.0 / refresh_rate;
     ull event_refresh = LLONG_MAX;

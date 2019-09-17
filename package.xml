@@ -47,6 +47,7 @@
   <build_depend>laser_geometry</build_depend>
   <build_depend>dvs_msgs</build_depend>
   <build_depend>prophesee_event_msgs</build_depend>
+  <build_depend>samsung_ros_driver</build_depend>
 
   <run_depend>OpenCV</run_depend>
   <run_depend>cv_bridge</run_depend>
@@ -65,5 +66,6 @@
   <run_depend>laser_geometry</run_depend>
   <run_depend>dvs_msgs</run_depend>
   <run_depend>prophesee_event_msgs</run_depend>
+  <run_depend>samsung_ros_driver</run_depend>
 
 </package>

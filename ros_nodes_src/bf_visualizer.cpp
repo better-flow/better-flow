@@ -22,11 +22,11 @@
 #include <dvs_msgs/Event.h>
 #include <dvs_msgs/EventArray.h>
 
-#include <prophesee_event_msgs/PropheseeEvent.h>
-#include <prophesee_event_msgs/PropheseeEventBuffer.h>
+#include <prophesee_event_msgs/Event.h>
+#include <prophesee_event_msgs/EventArray.h>
 
-#include <samsung_ros_driver/SamsungEvent.h>
-#include <samsung_ros_driver/SamsungEventBuffer.h>
+#include <samsung_event_msgs/Event.h>
+#include <samsung_event_msgs/EventArray.h>
 
 #include <better_flow/common.h>
 #include <better_flow/event.h>
@@ -98,11 +98,12 @@ public:
         on_ev_change(on_ev_change_), on_time_change(on_time_change_),
         time_diff(0), event_diff(0), last_slice_time(0), current_slice_time(0),
         estimator(NULL) {
-        this->event_sub_dvs = this->n_.subscribe(input_event_topic_dvs, 0, &EventVisualizer::event_cb_dvs, this);
+        this->event_sub_dvs = this->n_.subscribe(input_event_topic_dvs, 0,
+                                                       &EventVisualizer::event_cb<dvs_msgs::EventArray::ConstPtr>, this);
         this->event_sub_prophesee = this->n_.subscribe(input_event_topic_prophesee, 0,
-                                                       &EventVisualizer::event_cb_prophesee, this);
+                                                       &EventVisualizer::event_cb<prophesee_event_msgs::EventArray::ConstPtr>, this);
         this->event_sub_samsung   = this->n_.subscribe(input_event_topic_samsung, 0,
-                                                       &EventVisualizer::event_cb_samsung, this);
+                                                       &EventVisualizer::event_cb<samsung_event_msgs::EventArray::ConstPtr>, this);
         this->image_sub = this->it_.subscribe(input_image_topic, 1, &EventVisualizer::image_cb, this);
         this->cloud_pub = n_.advertise<pcl::PointCloud<pcl::PointXYZRGB> > (output_pointcloud_topic, 1);
         this->image_pub = this->it_.advertise(output_image_topic, 1);
@@ -125,7 +126,8 @@ public:
     }
 
     // Callbacks
-    void event_cb_dvs(const dvs_msgs::EventArray::ConstPtr& msg) {
+    template<class T>
+    void event_cb(const T& msg) {
         if (!this->first_event_received && msg->events.size() != 0) {
             this->first_event_received = true;
             this->reset_lag_timers(msg->events[0].ts.toNSec());
@@ -133,34 +135,6 @@ public:
 
         for (uint i = 0; i < msg->events.size(); ++i) {
             ull time = msg->events[i].ts.toNSec();
-            Event e(msg->events[i].x, msg->events[i].y, time);
-            this->add_event(e);
-            this->event_cnt++;
-        }
-    }
-
-    void event_cb_prophesee(const prophesee_event_msgs::PropheseeEventBuffer::ConstPtr& msg) {
-        if (!this->first_event_received && msg->events.size() != 0) {
-            this->first_event_received = true;
-            this->reset_lag_timers(msg->events[0].t * 1000);
-        }
-
-        for (uint i = 0; i < msg->events.size(); ++i) {
-            ull time = msg->events[i].t * 1000;
-            Event e(msg->events[i].x, msg->events[i].y, time);
-            this->add_event(e);
-            this->event_cnt++;
-        }
-    }
-
-    void event_cb_samsung(const samsung_ros_driver::SamsungEventBuffer::ConstPtr& msg) {
-        if (!this->first_event_received && msg->events.size() != 0) {
-            this->first_event_received = true;
-            this->reset_lag_timers(msg->events[0].t * 1000);
-        }
-
-        for (uint i = 0; i < msg->events.size(); ++i) {
-            ull time = msg->events[i].t * 1000;
             Event e(msg->events[i].x, msg->events[i].y, time);
             this->add_event(e);
             this->event_cnt++;
@@ -187,12 +161,12 @@ public:
     }
 
     // Add a new event to the buffer. The processing will start automatically
-    // if one of the triggers is set, otherwise nothing happens. 
+    // if one of the triggers is set, otherwise nothing happens.
     // Returns true if the processing is done, false otherwise
     bool add_event (Event &ev);
 
     // Visualize the data currently available
-    // This function is automatically called by 'add_event' 
+    // This function is automatically called by 'add_event'
     void visualize ();
 
     // Visualize data coming from minimizer

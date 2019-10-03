@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror")
 
 add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ext 
+    ${CMAKE_CURRENT_SOURCE_DIR}/ext
     ${CMAKE_CURRENT_SOURCE_DIR}/ext_build
 )
 
@@ -83,3 +83,25 @@ add_executable(bf_viewer
 target_link_libraries(bf_viewer
     ${OpenCV_LIBS}
 )
+
+
+find_package(rosbag)
+find_package(dvs_msgs)
+if (rosbag_FOUND AND dvs_msgs_FOUND)
+    message("found rosbag / dvs_msgs!")
+
+    include_directories(
+        ${rosbag_INCLUDE_DIRS}
+        ${dvs_msgs_INCLUDE_DIRS}
+    )
+
+    add_executable(bf_bag_viewer
+        src/bf_bag_viewer.cpp
+    )
+
+    target_link_libraries(bf_bag_viewer
+        ${rosbag_LIBRARIES}
+        ${OpenCV_LIBS}
+    )
+endif (rosbag_FOUND AND dvs_msgs_FOUND)
+

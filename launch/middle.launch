@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="output_type" default="screen"/>
+  <arg name="input_file"  default=""/>
+
+  <node pkg="better_flow" name="better_flow" type="bf_visualizer_nd" output="$(arg output_type)" respawn="false">
+    <param name="process_data"       value="false"/>
+    <param name="input_file"         value="$(arg input_file)"/>
+    <param name="input_event_topic_prophesee" value="/prophesee/hvga/cd_events_buffer"/>
+  </node>
+
+  <!-- Start rviz visualization with preset config -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find better_flow)/launch/better_visualizer.rviz"/>
+</launch>

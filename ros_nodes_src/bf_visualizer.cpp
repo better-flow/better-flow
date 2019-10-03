@@ -193,7 +193,7 @@ bool EventVisualizer<MAX_SZ, SPAN>::add_event (Event &ev) {
     }
 
     // Measure lag
-    const double time_events = double(this->current_slice_time - 
+    const double time_events = double(this->current_slice_time -
                                       this->first_event_timestamp) / 1000000000.0;
     const double time_system = (ros::Time::now() - this->start_system_time).toSec();
     const double time_lag = time_system - time_events;

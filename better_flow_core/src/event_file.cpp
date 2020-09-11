@@ -45,7 +45,12 @@ cv::Mat EventFile::color_gradient_img (cv::Mat gx, cv::Mat gy) {
     }
 
     cv::Mat flow_bgr;
-    cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(flow_hsv, flow_bgr, cv::COLOR_HSV2BGR);
+    #endif
 
     return flow_bgr;
 }
@@ -97,7 +102,12 @@ cv::Mat EventFile::generate_color_circle (bool show) {
     }
 
     cv::Mat flow_bgr;
-    cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(flow_hsv, flow_bgr, cv::COLOR_HSV2BGR);
+    #endif
 
     if (show) {
         std::string window_name = "Color Circle";

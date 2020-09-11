@@ -305,7 +305,7 @@ template<class T> cv::Mat EventFile::arrow_flow_img (T *events) {
     #if CV_MAJOR_VERSION == 2 // No arrowedLine in opencv 2.4
         cv::line(flow_arrow, cv::Point(y * scale_arrow_flow, x * scale_arrow_flow), 
                         cv::Point((y + e.best_v / 20) * scale_arrow_flow, (x + e.best_u / 20) * scale_arrow_flow), CV_RGB(0,0,255));
-    #elif CV_MAJOR_VERSION == 3
+    #elif CV_MAJOR_VERSION >= 3
         cv::arrowedLine(flow_arrow, cv::Point(y * scale_arrow_flow, x * scale_arrow_flow), 
                         cv::Point((y + e.best_v / 20) * scale_arrow_flow, (x + e.best_u / 20) * scale_arrow_flow), CV_RGB(0,0,255));
     #endif
@@ -339,7 +339,12 @@ template<class T> cv::Mat EventFile::color_flow_img (T *events) {
     }
 
     cv::Mat flow_bgr;
-    cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(flow_hsv, flow_bgr, cv::COLOR_HSV2BGR);
+    #endif
 
     return flow_bgr;
 }
@@ -434,7 +439,12 @@ template<class T> void EventFile::display_uvscore (T *events) {
     }
 
     cv::Mat flow_bgr;
-    cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(flow_hsv, flow_bgr, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(flow_hsv, flow_bgr, cv::COLOR_HSV2BGR);
+    #endif
 
     cv::convertScaleAbs(scores, scores, 10.0, 0);
 
@@ -626,7 +636,12 @@ template<class T> cv::Mat EventFile::color_clusters_img (T *events, bool show_fi
         }
     }
 
-    cv::cvtColor(project_img_avg, project_img_avg, CV_HSV2BGR);
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(project_img_avg, project_img_avg, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(project_img_avg, project_img_avg, cv::COLOR_HSV2BGR);
+    #endif
+
     return project_img_avg;
 }
 
@@ -722,7 +737,12 @@ template<class T> cv::Mat EventFile::color_time_img (T *events, int scale, bool 
 
     //std::cout << "Ignored / Total: " << ignored << " / " << total << std::endl;
 
-    cv::cvtColor(project_img_avg, project_img_avg, CV_HSV2BGR);
+    #if CV_MAJOR_VERSION == 2
+        cv::cvtColor(project_img_avg, project_img_avg, CV_HSV2BGR);
+    #elif CV_MAJOR_VERSION >= 3
+        cv::cvtColor(project_img_avg, project_img_avg, cv::COLOR_HSV2BGR);
+    #endif
+
     return project_img_avg;
 }
 

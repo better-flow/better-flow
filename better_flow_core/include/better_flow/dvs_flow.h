@@ -117,9 +117,15 @@ public:
         int h = RES_X * 3;
         this->video_fps = framerate;
         this->generate_video = val;
-        if (this->generate_video)
+        if (this->generate_video) {
+        #if CV_MAJOR_VERSION == 2
             this->outputvideo = new cv::VideoWriter(name, CV_FOURCC('W','M','V','2'), 
-                                                   framerate, cv::Size(w, h), true); 
+                                                   framerate, cv::Size(w, h), true);
+        #elif CV_MAJOR_VERSION >= 3
+            this->outputvideo = new cv::VideoWriter(name, cv::VideoWriter::fourcc('W','M','V','2'), 
+                                                   framerate, cv::Size(w, h), true);
+        #endif
+        }
     }
 
     // Save a picture after each iteration

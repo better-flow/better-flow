@@ -20,9 +20,10 @@ find_package(OpenCL)
 if (NOT OPENCL_FOUND)
     set(OpenCL_LIBRARY "")
     set(OpenCL_INCLUDE_DIRS "")
+    add_definitions(-DOPENCL_ENABLED=0)
+else()
+    add_definitions(-DOPENCL_ENABLED=1)
 endif (NOT OPENCL_FOUND)
-
-add_definitions(-DOPENCL_ENABLED=${OPENCL_FOUND})
 
 include_directories(
     # Better Flow include files

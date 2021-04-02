@@ -141,6 +141,10 @@ public:
         this->grad_y = cv::Mat::zeros(nRows, nCols, CV_32FC1);
         this->rots = cv::Mat::zeros(nRows, nCols, CV_32FC1);
         this->divs = cv::Mat::zeros(nRows, nCols, CV_32FC1);
+#else
+        (void)events;
+        (void)nRows;
+        (void)nCols;
 #endif
     }
 
@@ -325,6 +329,8 @@ public:
             (*events)[i].nx = this->nx_c[i];
             (*events)[i].ny = this->ny_c[i];
         }
+#else
+        (void)events;
 #endif
     }
 

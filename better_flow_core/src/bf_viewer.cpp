@@ -232,7 +232,7 @@ cv::Mat project_events_color (double nx, double ny, double nz) {
         }
     }
 
-    cv::cvtColor(project_img_avg, project_img_avg, CV_HSV2BGR);
+    cv::cvtColor(project_img_avg, project_img_avg, cv::COLOR_HSV2BGR);
 
     //if (scale > 1) {
     //    int k_size = (scale % 2 == 0) ? scale + 1 : scale;
@@ -255,6 +255,9 @@ int value_x = 127, value_y = 127, fine = 500;
 cv::Mat project_img;
 
 void button_cb(int state, void* userdata) {
+    (void)state;
+    (void)userdata;
+
     double nx = double(value_x - 127) / double(fine + 1);
     double ny = double(value_y - 127) / double(fine + 1);
     project_img = project_events(nx, ny, 127);

@@ -1,4 +1,0 @@
-[submodule "better_flow_core/ext/tbb"]
-	path = better_flow_core/ext/tbb
-	url = https://github.com/01org/tbb
-	branch = master

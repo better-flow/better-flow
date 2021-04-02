@@ -15,7 +15,7 @@ Only ROS frontend supports reading data from the camera. Some useful ROS links:
   - [ROS Tutorials](http://wiki.ros.org/ROS/Tutorials "This is a set of brief ROS tutorials")
 
 
-## Setup with ROS frontend
+## Setup with ROS frontend (may be broken, see standalone instructions below)
 ### First time setup:
 1. Make sure ROS Kinetic is [installed](http://wiki.ros.org/kinetic/Installation/Ubuntu) on you [Ubuntu 16.04](http://releases.ubuntu.com/16.04/) system. Other configurations are possible but not tested.
 2. Download the *cognifli* code (see [project page](https://github.com/ncos/cognifli) for more details):
@@ -104,12 +104,21 @@ Also check manuals [here](http://wiki.ros.org/rqt_bag) and [here](http://wiki.ro
 
 ## ROS-independent setup
 ### First time setup:
-1. Download Better Flow [source code](https://github.com/better-flow/better-flow) and build the project:
+1. Install dependencies
+```
+sudo apt install libtbb-dev
+```
+
+Build and install OpenCV from source with QT support turned on. QT support is not turned on in the version from the Ubuntu repositories. E.g. build OpenCV with
+```
+cmake -DWITH_QT=ON ../.
+```
+Instructions for building and installing OpenCV from source can be found here: `https://docs.opencv.org/master/d7/d9f/tutorial_linux_install.html`
+
+
+2. Download Better Flow [source code](https://github.com/better-flow/better-flow) and build the project:
 ```
 git clone https://github.com/better-flow/better-flow
-cd better_flow
-git submodule init
-git submodule update
 cd better_flow/better_flow_core
 cmake .
 make -j8

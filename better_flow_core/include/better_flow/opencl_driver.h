@@ -18,7 +18,8 @@ public:
 #endif
 
     static bool enabled;
-    static void init (std::string fname_ = "/home/alice/better_flow/better_flow_core/src/gpu_impl.cl");
+    // TODO replace with variable from CMAKE
+    static void init (std::string fname_ = "/home/levi/better-flow/better_flow_core/src/gpu_impl.cl");
 };
 
 

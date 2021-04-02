@@ -56,5 +56,7 @@ void OpenCLDriver::init (std::string fname_) {
     OpenCLDriver::model_helper_ker = cl::Kernel(*OpenCLDriver::program, "model_helper");
 
     OpenCLDriver::enabled = true;
+#else
+    (void)fname_;
 #endif
 }

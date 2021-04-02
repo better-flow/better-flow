@@ -262,8 +262,8 @@ void DVS_flow<MAX_SZ, SPAN>::recompute () {
         //cv::Mat img_arrow = EventFile::arrow_flow_img(&this->ev_buffer);
         //cv::Mat img_color = EventFile::color_flow_img(&this->ev_buffer);
 
-        cv::cvtColor(img_pr_t, img_pr_t, CV_GRAY2RGB);
-        cv::cvtColor(img_pr_f, img_pr_f, CV_GRAY2RGB);
+        cv::cvtColor(img_pr_t, img_pr_t, cv::COLOR_GRAY2RGB);
+        cv::cvtColor(img_pr_f, img_pr_f, cv::COLOR_GRAY2RGB);
         
         cv::resize(img_pr_t, img_pr_t, cv::Size(RES_Y * 3, RES_X * 3));
         cv::resize(img_pr_f, img_pr_f, cv::Size(RES_Y * 3, RES_X * 3));
